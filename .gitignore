@@ -1,0 +1,36 @@
+# =============== #
+# Unity generated #
+# =============== #
+Temp/
+Library/
+
+# ===================================== #
+# Visual Studio / MonoDevelop generated #
+# ===================================== #
+ExportedObj/
+obj/
+*.svd
+*.userprefs
+/*.csproj
+*.pidb
+*.suo
+/*.sln
+*.user
+*.unityproj
+*.booproj
+
+# ============ #
+# OS generated #
+# ============ #
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Assets/StaticAssets/MainCharacter/Conan/Materials/ConanPattern2.mat
+Assets/StaticAssets/MainCharacter/Conan/Materials/ConanPattern2.mat.meta
+Assets/StaticAssets/MainCharacter/Conan/Materials/Material #26.mat
+Assets/StaticAssets/MainCharacter/Conan/Materials/Material #26.mat.meta
+pcgai_Data/
