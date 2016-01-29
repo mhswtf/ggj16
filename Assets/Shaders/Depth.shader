@@ -1,5 +1,4 @@
-﻿Shader "Custom/DepthGrayscale" {
-
+﻿Shader "Custom/Depth" {
 
 	CGINCLUDE
 
@@ -21,7 +20,7 @@
 	ENDCG
 
 	SubShader {
-		Tags { "RenderType"="Opaque" }
+		Tags { "RenderType"="Opaque+1" }
 
 		GrabPass{ "_GrabTexture" }
 
@@ -39,8 +38,8 @@
 			}
 
 			//Fragment Shader
-			half4 frag (v2f i) : COLOR{
-			   fixed depth = Linear01Depth (tex2Dproj(_CameraDepthTexture, UNITY_PROJ_COORD(i.scrPos)).r);
+			half4 frag (v2f i) : COLOR {
+			   fixed depth = Linear01Depth(tex2Dproj(_CameraDepthTexture, UNITY_PROJ_COORD(i.scrPos)).x);
 
 			   depth += _Time.x;
 			   depth = depth % 1;
