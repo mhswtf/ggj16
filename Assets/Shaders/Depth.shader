@@ -20,14 +20,21 @@
 	ENDCG
 
 	SubShader {
-		Tags { "RenderType"="Opaque+1" }
+		Tags { 
+			"Queue" = "Transparent"
+			"RenderType" = "Transparent" 
+		}
 
 		GrabPass{ "_GrabTexture" }
 
 		Pass {
+
+//			ZWrite off
+
+ 			Blend SrcAlpha OneMinusSrcAlpha
+
 			CGPROGRAM
 
-			//Vertex Shader
 			v2f vert (appdata_base v) {
 			   	v2f o;
 			   	o.pos = mul(UNITY_MATRIX_MVP, v.vertex);
@@ -37,16 +44,18 @@
 		   		return o;
 			}
 
-			//Fragment Shader
 			half4 frag (v2f i) : COLOR {
-			   fixed depth = Linear01Depth(tex2Dproj(_CameraDepthTexture, UNITY_PROJ_COORD(i.scrPos)).x);
+				fixed depth = Linear01Depth(tex2Dproj(_CameraDepthTexture, UNITY_PROJ_COORD(i.scrPos)).x);
 
-			   depth += _Time.x;
-			   depth = depth % 1;
+				if (depth == 1) return 0;
 
-			   fixed4 output = fixed4(depth, depth, depth, 1);
+				fixed4 refl = tex2Dproj(_GrabTexture, UNITY_PROJ_COORD(i.uvgrab));
 
-			   return output;
+				return fixed4(0, depth, pow(depth, 3), .5);
+
+				fixed4 output = fixed4(0, depth, depth, .5);
+
+				return output;
 			}
 
 			ENDCG

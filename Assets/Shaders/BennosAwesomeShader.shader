@@ -53,8 +53,7 @@
             {
                 //Grab the depth value from the depth texture
                 //Linear01Depth restricts this value to [0, 1]
-                float depth = Linear01Depth (tex2Dproj(_CameraDepthTexture,
-                                                             UNITY_PROJ_COORD(i.projPos)).x);
+                float depth = Linear01Depth (tex2Dproj(_CameraDepthTexture, UNITY_PROJ_COORD(i.projPos)).x);
  
  				// sample the texture
 				fixed4 col = tex2D(_MainTex, i.uv);

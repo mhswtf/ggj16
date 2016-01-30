@@ -130,19 +130,19 @@ Material:
       data:
         first:
           name: _UpperBorder
-        second: 0.99
+        second: 0.85
       data:
         first:
           name: _UpperLerp
-        second: 0.267
+        second: 0.211
       data:
         first:
           name: _LowerBorder
-        second: -0.5
+        second: 0.73
       data:
         first:
           name: _LowerLerp
-        second: 0.106
+        second: 0.06
     m_Colors:
       data:
         first:
@@ -159,12 +159,12 @@ Material:
       data:
         first:
           name: _UpperColor
-        second: {r: 0.35131916, g: 0.83823526, b: 0.5158633, a: 1}
+        second: {r: 0.86085194, g: 1, b: 0.6397059, a: 1}
       data:
         first:
           name: _MainColor
-        second: {r: 0.5147059, g: 0.5147059, b: 0.5147059, a: 1}
+        second: {r: 0.37597317, g: 0.83823526, b: 0.58957016, a: 1}
       data:
         first:
           name: _LowerColor
-        second: {r: 1, g: 1, b: 1, a: 1}
+        second: {r: 0.44117647, g: 0.44117647, b: 0.44117647, a: 1}
