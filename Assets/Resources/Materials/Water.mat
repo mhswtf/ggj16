@@ -78,6 +78,27 @@ Material:
           m_Texture: {fileID: 0}
           m_Scale: {x: 1, y: 1}
           m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: _NNoise1
+        second:
+          m_Texture: {fileID: 2800000, guid: ad98357e33467fb4396a2b97c112a190, type: 3}
+          m_Scale: {x: 1, y: 1}
+          m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: _NNoise2
+        second:
+          m_Texture: {fileID: 2800000, guid: ad98357e33467fb4396a2b97c112a190, type: 3}
+          m_Scale: {x: 1, y: 1}
+          m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: _ColorRamp
+        second:
+          m_Texture: {fileID: 2800000, guid: 6ce4a315c29a6b041b38ba5d27cd7061, type: 3}
+          m_Scale: {x: 1, y: 1}
+          m_Offset: {x: 0, y: 0}
     m_Floats:
       data:
         first:
@@ -90,11 +111,11 @@ Material:
       data:
         first:
           name: _Cutoff
-        second: 0.5
+        second: .5
       data:
         first:
           name: _Parallax
-        second: 0.02
+        second: .0199999996
       data:
         first:
           name: _ZWrite
@@ -102,7 +123,7 @@ Material:
       data:
         first:
           name: _Glossiness
-        second: 0.5
+        second: .5
       data:
         first:
           name: _BumpScale
@@ -130,27 +151,35 @@ Material:
       data:
         first:
           name: _Transparency
-        second: 0.42
+        second: .419999987
       data:
         first:
           name: _BaseTransparency
-        second: 0.15
+        second: .150000006
       data:
         first:
           name: _TransparencyDropoff
-        second: 2.7
+        second: 2.70000005
       data:
         first:
           name: _Speed
-        second: 0.76
+        second: .75999999
       data:
         first:
           name: _Amplitude
-        second: 0.28
+        second: .280000001
       data:
         first:
           name: _Frequency
-        second: 0.22
+        second: .219999999
+      data:
+        first:
+          name: _DistortFactor
+        second: .5
+      data:
+        first:
+          name: _MaxDepth
+        second: 20
     m_Colors:
       data:
         first:
@@ -167,8 +196,8 @@ Material:
       data:
         first:
           name: _TintColor
-        second: {r: 0.8308824, g: 0.5437392, b: 0.5437392, a: 1}
+        second: {r: .83088237, g: .5437392, b: .5437392, a: 1}
       data:
         first:
           name: _Direction
-        second: {r: 1, g: 0, b: 0.4, a: 0}
+        second: {r: 1, g: 0, b: .400000006, a: 0}
