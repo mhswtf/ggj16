@@ -104,15 +104,17 @@
 				float4 distortNormal2 = (tex2D(_NNoise2, i.uv2) - 0.5) * 2;
 				float4 distortNormal = (distortNormal1 + distortNormal2)/2;
 				
-				float adjustedDepth = clamp((depth)/40, 0.5, 5);
-				float4 projPosDistorted = i.projPos + distortNormal*_DistortFactor*adjustedDepth;
+				float adjustedDepth = clamp((depth)/20, 0, _MaxDepth);
+				float4 projPosDistorted = i.projPos + distortNormal*_DistortFactor;//*adjustedDepth;
 				half4 distortedColor = tex2Dproj(_GrabTexture, UNITY_PROJ_COORD(projPosDistorted));
 				
 				float distortedDepth = DepthBufferDistance(i.depth, projPosDistorted);
-				fixed relativeDepth = clamp(distortedDepth,0,_MaxDepth);
+				fixed relativeDepth = clamp(distortedDepth,0.5,_MaxDepth);
 				relativeDepth = relativeDepth/_MaxDepth;
 				
-				fixed4 depthColor = tex2D(_ColorRamp, float2(relativeDepth*0.99,0));
+				relativeDepth = 1-((1-relativeDepth)*(1-relativeDepth)*(1-relativeDepth));
+				
+				fixed4 depthColor = tex2D(_ColorRamp, float2(relativeDepth*0.95,0));
 				//half4 tex = tex2D(_MainTex, i.uv1);
 				//output.a = (depth / _TransparencyDropoff + _BaseTransparency) * tex.r;
 				
