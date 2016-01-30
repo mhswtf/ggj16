@@ -127,6 +127,14 @@ Material:
         first:
           name: _Metallic
         second: 0
+      data:
+        first:
+          name: _Near
+        second: .300000012
+      data:
+        first:
+          name: _Far
+        second: 50
     m_Colors:
       data:
         first:
