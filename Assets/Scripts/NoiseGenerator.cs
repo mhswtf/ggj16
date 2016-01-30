@@ -12,6 +12,10 @@ public class NoiseGenerator : MonoBehaviour {
 
     private string typeName;
 
+    void Awake() {
+        
+    }
+
     public bool HasTexture() {
         return image != null;
     }

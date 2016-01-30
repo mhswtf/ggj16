@@ -19,7 +19,7 @@ Material:
         first:
           name: _MainTex
         second:
-          m_Texture: {fileID: 2800000, guid: 45c233d4426982247882f2fca1404768, type: 3}
+          m_Texture: {fileID: 2800000, guid: c6e0767b1f8c34890ac245217f4b9731, type: 3}
           m_Scale: {x: 4, y: 4}
           m_Offset: {x: 0, y: 0}
       data:
@@ -78,6 +78,27 @@ Material:
           m_Texture: {fileID: 0}
           m_Scale: {x: 1, y: 1}
           m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: _UpperTex
+        second:
+          m_Texture: {fileID: 2800000, guid: c6e0767b1f8c34890ac245217f4b9731, type: 3}
+          m_Scale: {x: 20, y: 20}
+          m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: _MiddleTex
+        second:
+          m_Texture: {fileID: 2800000, guid: 440eb36db91ca410f800ff3cfe43572f, type: 3}
+          m_Scale: {x: 20, y: 20}
+          m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: _LowerTex
+        second:
+          m_Texture: {fileID: 2800000, guid: 18214e9d6af6248559d501391856f1c7, type: 3}
+          m_Scale: {x: 20, y: 20}
+          m_Offset: {x: 0, y: 0}
     m_Floats:
       data:
         first:
@@ -130,19 +151,19 @@ Material:
       data:
         first:
           name: _UpperBorder
-        second: 0.89
+        second: 0.72
       data:
         first:
           name: _UpperLerp
-        second: 0.155
+        second: 0.167
       data:
         first:
           name: _LowerBorder
-        second: 0.73
+        second: 0.47
       data:
         first:
           name: _LowerLerp
-        second: 0.06
+        second: 0.246
     m_Colors:
       data:
         first:
@@ -159,11 +180,11 @@ Material:
       data:
         first:
           name: _UpperColor
-        second: {r: 0.86085194, g: 1, b: 0.6397059, a: 1}
+        second: {r: 0.9036511, g: 1, b: 0.30147058, a: 0}
       data:
         first:
           name: _MainColor
-        second: {r: 0.37597317, g: 0.83823526, b: 0.58957016, a: 1}
+        second: {r: 0.703, g: 0.83823526, b: 0.58957016, a: 1}
       data:
         first:
           name: _LowerColor
