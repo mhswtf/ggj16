@@ -180,12 +180,12 @@ Material:
       data:
         first:
           name: _UpperColor
-        second: {r: 0.9036511, g: 1, b: 0.30147058, a: 0}
+        second: {r: 0.703, g: 1, b: 0.32352942, a: 0}
       data:
         first:
           name: _MainColor
-        second: {r: 0.703, g: 0.83823526, b: 0.58957016, a: 1}
+        second: {r: 0.834, g: 0.72, b: 0.33737025, a: 1}
       data:
         first:
           name: _LowerColor
-        second: {r: 0.44117647, g: 0.44117647, b: 0.44117647, a: 1}
+        second: {r: 0.55606616, g: 0.5679513, b: 0.625, a: 1}

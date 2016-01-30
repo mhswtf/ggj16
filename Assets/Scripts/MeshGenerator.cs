@@ -17,6 +17,8 @@ public class MeshGenerator : Singleton<MeshGenerator> {
     [Range(0f, 100f)]
     public float waterLevel = 10f;
 
+    public float uvRate = .01f;
+
     public Material terrainMaterial;
     public Material waterMaterial;
 
@@ -89,20 +91,39 @@ public class MeshGenerator : Singleton<MeshGenerator> {
         float factor = (float) image.width / (float) w ;
 
         for (int y = 0; y < h; y++) {
+
             for (int x = 0; x < w; x++) {
                 int i = y * w + x;
 
                 int px = (int) Mathf.Round(x * factor);
                 int py = (int) Mathf.Round(y * factor);
+
                 int pi = py * image.width + px;
 
                 float vx = x - (float) (w - 1) / 2f;
-                float vz = y - (float) (h - 1) / 2f;
-                float vy = pixels[pi].r * height;
+                float vy = y - (float) (h - 1) / 2f;
 
-                vertices[i] = new Vector3(vx * spacing, vy, vz * spacing);
+                // Vertex height
+                float vh = pixels[pi].r * height;
+
+                vertices[i] = new Vector3(vx * spacing, vh, vy * spacing);
 
                 uvs[i] = new Vector2((float) x / (float) w, (float) y / (float) h);
+            
+                /*float uvx = 0f;
+                float uvy = 0f;
+
+                if (x > 0) {
+                    float pxvh = vertices[i - 1].y;
+                    uvx = uvs[i - 1].x + uvRate + uvRate * Mathf.Abs(vh - pxvh);
+                }
+
+                if (y > 0) {
+                    float pyvh = vertices[i - w].y;
+                    uvy = uvs[i - w].y + uvRate + uvRate * Mathf.Abs(vh - pyvh);
+                }
+
+                uvs[i] = new Vector2(uvx, uvy);*/
             }
         }
 
