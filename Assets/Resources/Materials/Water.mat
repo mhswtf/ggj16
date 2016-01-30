@@ -175,7 +175,7 @@ Material:
       data:
         first:
           name: _DistortFactor
-        second: .5
+        second: .200000003
       data:
         first:
           name: _MaxDepth
