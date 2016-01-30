@@ -1,15 +1,18 @@
 ﻿Shader "Custom/Water" {
 
 	Properties {
-		_TintColor ("TintColor", Color) = (1.0, 1.0, 1.0, 1.0)
-		_BaseTransparency ("Base Transparency", Range(0.0, 1.0)) = .5
-		_TransparencyDropoff ("Transparency dropoff", Range(0.0, 10.0)) = 1
 		_Direction("WindDirection", Vector) = (1.0, 0.0, 1.0, 0.0)
 		_Speed("Speed", Range(0.1, 5)) = 0.5
 		_Amplitude("Amplitude", Range(0.0, 1.0)) = 0.5
 		_Frequency("Frequency", Range(0.0, 3.0)) = 1.0
 
 		_MainTex("Main Texture", 2D) = "white" {}
+		_ColorRamp("ColorRamp", 2D) = "white" {}
+		_NNoise1("Normal Noise 1", 2D) = "white" {}
+		_NNoise2("Normal Noise 2", 2D) = "white" {}
+		_DistortFactor("Distortion Factor", Range(0.0, 10.0)) = 0.5
+		_MaxDepth("Max Depth", Range(0.0, 20.0)) = 10
+		
 	}
 
 	CGINCLUDE
@@ -20,16 +23,17 @@
 
 	#include "UnityCG.cginc"
 
-	uniform fixed4 _TintColor;
-	uniform fixed _BaseTransparency;
-	uniform half _TransparencyDropoff;
-
 	uniform half4 _Direction;
 	uniform half _Speed;
 	uniform fixed _Amplitude;
 	uniform half _Frequency;
+	uniform half _DistortFactor;
+	uniform half _MaxDepth;
 
 	uniform sampler2D _MainTex;
+	uniform sampler2D _ColorRamp;
+	uniform sampler2D _NNoise1;
+	uniform sampler2D _NNoise2;
 	uniform float4 _MainTex_ST;
 	uniform sampler2D _CameraDepthTexture;
 	uniform sampler2D _GrabTexture;
@@ -55,8 +59,8 @@
 
 	SubShader {
 		Tags { 
-			"Queue" = "Transparent"
-			"RenderType" = "Transparent" 
+			"Queue" = "Geometry"
+			"RenderType" = "Opaque" 
 		}
 
 		GrabPass{ "_GrabTexture" }
@@ -68,10 +72,11 @@
 			CGPROGRAM
 
 			struct v2f {
-				float2 uv : TEXCOORD0;
+				float2 uv1 : TEXCOORD0;
+				float2 uv2 : TEXCOORD1;
 				float4 pos : SV_POSITION;
-                float4 projPos : TEXCOORD1; //Screen position of pos
-                float depth : TEXCOORD2;
+                float4 projPos : TEXCOORD2; //Screen position of pos
+                float depth : TEXCOORD3;
             };
 
             v2f vert(appdata_base v) {
@@ -86,7 +91,8 @@
                 o.projPos = ComputeScreenPos(o.pos);
  				o.depth = o.pos.z/o.pos.w;
 
- 				o.uv = v.texcoord;
+ 				o.uv1 = v.texcoord * _MainTex_ST.xy + _MainTex_ST.zw + float2(_Time.x * _Speed,0);
+ 				o.uv2 = v.texcoord * _MainTex_ST.xy + _MainTex_ST.zw + float2(0,_Time.x * _Speed);
 
                 return o;
             }
@@ -94,16 +100,25 @@
 			half4 frag (v2f i) : COLOR {
 				fixed depth = DepthBufferDistance(i.depth, i.projPos);
 
-				fixed4 output;
-
-				half4 tex = tex2D(_MainTex, i.uv.xy * _MainTex_ST.xy + _MainTex_ST.zw);
-
-				output.r = depth / 10 - .5;
-				output.g = (5 - depth) / 4;
-				output.b = depth / 3 + .3;
-				output.a = (depth / _TransparencyDropoff + _BaseTransparency) * tex.r;
-
-				return output * _TintColor;
+				float4 distortNormal1 = (tex2D(_NNoise1, i.uv1) - 0.5) * 2;
+				float4 distortNormal2 = (tex2D(_NNoise2, i.uv2) - 0.5) * 2;
+				float4 distortNormal = (distortNormal1 + distortNormal2)/2;
+				
+				float adjustedDepth = clamp((depth)/40, 0.5, 5);
+				float4 projPosDistorted = i.projPos + distortNormal*_DistortFactor*adjustedDepth;
+				half4 distortedColor = tex2Dproj(_GrabTexture, UNITY_PROJ_COORD(projPosDistorted));
+				
+				float distortedDepth = DepthBufferDistance(i.depth, projPosDistorted);
+				fixed relativeDepth = clamp(distortedDepth,0,_MaxDepth);
+				relativeDepth = relativeDepth/_MaxDepth;
+				
+				fixed4 depthColor = tex2D(_ColorRamp, float2(relativeDepth*0.99,0));
+				//half4 tex = tex2D(_MainTex, i.uv1);
+				//output.a = (depth / _TransparencyDropoff + _BaseTransparency) * tex.r;
+				
+				half4 col = (relativeDepth * depthColor + (1-relativeDepth) * distortedColor);
+				col.a = 1;
+				return col;
 			}
 
 			ENDCG
