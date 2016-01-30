@@ -3,7 +3,7 @@ using System.Collections;
 using System;
 using System.Collections.Generic;
 
-public class MeshGenerator : MonoBehaviour {
+public class MeshGenerator : Singleton<MeshGenerator> {
 
     [Range(10, 250)]
     public int size = 100;

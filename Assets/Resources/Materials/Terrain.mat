@@ -130,11 +130,11 @@ Material:
       data:
         first:
           name: _UpperBorder
-        second: 0.85
+        second: 0.89
       data:
         first:
           name: _UpperLerp
-        second: 0.211
+        second: 0.155
       data:
         first:
           name: _LowerBorder
