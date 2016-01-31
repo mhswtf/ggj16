@@ -3,7 +3,7 @@
 	Properties {
 		_Direction("WindDirection", Vector) = (1.0, 0.0, 1.0, 0.0)
 		_Speed("Speed", Range(0.1, 5)) = 0.5
-		_Amplitude("Amplitude", Range(0.0, 1.0)) = 0.5
+		_Amplitude("Amplitude", Range(0.0, 5.0)) = 0.5
 		_Frequency("Frequency", Range(0.0, 3.0)) = 1.0
 		_Smoothing("Smoothing", Range(0.0, 1.0)) = 0.5
 
@@ -79,13 +79,20 @@
 
 			struct v2f {
 				float4 pos : SV_POSITION;
-				float3 normalWorld : NORMAL;
 				float2 uv1 : TEXCOORD0;
 				float2 uv2 : TEXCOORD1;
 				float4 posWorld : TEXCOORD2;
+<<<<<<< HEAD
                 float4 projPos : TEXCOORD3; 
                 float depth : TEXCOORD4;
                 float viewDir : TEXCOORD5;
+=======
+				float3 normalWorld : NORMAL;
+				float3 tangentWorld : TEXCOORD3;
+				float3 binormalWorld : TEXCOORD4;	
+                float4 projPos : TEXCOORD5; 
+                float depth : TEXCOORD6;
+>>>>>>> 750f241cf45e3f44aaa1a9bde7087a1461162f93
             };
 
             v2f vert(appdata_full v) {
@@ -128,6 +135,11 @@
 				o.posWorld = float4(v0, 1.0);
 				v.vertex = mul(_World2Object, o.posWorld);
 
+				o.normalWorld = normalize(mul(float4(v.normal, 0.0), _World2Object).xyz);
+				o.tangentWorld = normalize(mul(_Object2World, v.tangent).xyz);
+				// tangent.w is specific to Unity
+				o.binormalWorld = normalize(cross(o.normalWorld, o.tangentWorld) * v.tangent.w);
+
                 o.pos = mul(UNITY_MATRIX_MVP, v.vertex);
 
                 //Screen position of pos
@@ -147,7 +159,7 @@
             }
 
 			half4 frag (v2f i) : COLOR {
-//				return fixed4(i.normalWorld, 1);
+//				return fixed4(i.tangentWorld, 1);
 
 				float realDepth = DepthBufferDistance(i.depth, i.projPos);
 				float adjustedDepth = clamp((realDepth) / 20, 0, _MaxDepth);

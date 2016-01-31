@@ -167,7 +167,7 @@ Material:
       data:
         first:
           name: _Amplitude
-        second: 0.2
+        second: 1.69
       data:
         first:
           name: _Frequency
