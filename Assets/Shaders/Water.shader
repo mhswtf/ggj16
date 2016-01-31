@@ -86,10 +86,10 @@
 				float3 tangentWorld : TEXCOORD3;
 				float3 binormalWorld : TEXCOORD4;	
                 float4 projPos : TEXCOORD5; 
-                float depth : TEXCOORD6;
+                float depth : asdf;
             };
 
-            v2f vert(appdata_full v) {
+            v2f vert(appdata_tan v) {
                 v2f o;
 
                 // Vertex displacement
@@ -128,13 +128,16 @@
 
 				o.posWorld = float4(v0, 1.0);
 				v.vertex = mul(_World2Object, o.posWorld);
+                o.pos = mul(UNITY_MATRIX_MVP, v.vertex);
 
 				o.normalWorld = normalize(mul(float4(v.normal, 0.0), _World2Object).xyz);
 				o.tangentWorld = normalize(mul(_Object2World, v.tangent).xyz);
+
+				o.normalWorld = v.normal;
+				o.tangentWorld = v.tangent;
 				// tangent.w is specific to Unity
 				o.binormalWorld = normalize(cross(o.normalWorld, o.tangentWorld) * v.tangent.w);
 
-                o.pos = mul(UNITY_MATRIX_MVP, v.vertex);
 
                 //Screen position of pos
                 o.projPos = ComputeScreenPos(o.pos);
@@ -147,7 +150,6 @@
             }
 
 			half4 frag (v2f i) : COLOR {
-//				return fixed4(i.tangentWorld, 1);
 
 				float realDepth = DepthBufferDistance(i.depth, i.projPos);
 				float adjustedDepth = clamp((realDepth) / 20, 0, _MaxDepth);
