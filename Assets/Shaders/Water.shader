@@ -85,6 +85,7 @@
 				float4 posWorld : TEXCOORD2;
                 float4 projPos : TEXCOORD3; 
                 float depth : TEXCOORD4;
+                float viewDir : TEXCOORD5;
             };
 
             v2f vert(appdata_full v) {
@@ -135,6 +136,12 @@
 
  				o.uv1 = v.texcoord * _NNoise1_ST.xy + _NNoise1_ST.zw + float2(_Time.x * _Speed, 0);
  				o.uv2 = v.texcoord * _NNoise2_ST.xy + _NNoise2_ST.zw + float2(0, _Time.x * _Speed);
+
+				//neccessary for cubemap reflections
+				float4x4 modelMatrix = _Object2World;
+            	float4x4 modelMatrixInverse = _World2Object; 
+ 
+            	output.viewDir = mul(modelMatrix, input.vertex).xyz - _WorldSpaceCameraPos;
 
                 return o;
             }
