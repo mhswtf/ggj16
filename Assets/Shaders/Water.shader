@@ -13,6 +13,8 @@
 		_DistortFactor("Distortion Factor", Range(0.0, 10.0)) = 0.5
 		_MaxDepth("Max Depth", Range(0.01, 20.0)) = 10
 		
+		_ReflectionMap("Reflection Map", Cube) = "" {}
+		_Reflectivity("Reflectivity", Range(0, 1)) = 0.5
 	}
 
 	CGINCLUDE
@@ -38,6 +40,8 @@
 	uniform float4 _NNoise2_ST;
 	uniform sampler2D _CameraDepthTexture;
 	uniform sampler2D _GrabTexture;
+	uniform samplerCUBE _ReflectionMap;  
+	uniform half _Reflectivity;
 
 	// depth = float depth of pixel, projPos = float4 screenPosition of pixel
 	float DepthBufferDistance(float depth, float4 projPos){
@@ -82,17 +86,12 @@
 				float2 uv1 : TEXCOORD0;
 				float2 uv2 : TEXCOORD1;
 				float4 posWorld : TEXCOORD2;
-<<<<<<< HEAD
-                float4 projPos : TEXCOORD3; 
-                float depth : TEXCOORD4;
-                float viewDir : TEXCOORD5;
-=======
 				float3 normalWorld : NORMAL;
 				float3 tangentWorld : TEXCOORD3;
 				float3 binormalWorld : TEXCOORD4;	
                 float4 projPos : TEXCOORD5; 
                 float depth : TEXCOORD6;
->>>>>>> 750f241cf45e3f44aaa1a9bde7087a1461162f93
+                float3 viewDir : TEXCOORD7;
             };
 
             v2f vert(appdata_full v) {
@@ -149,17 +148,14 @@
  				o.uv1 = v.texcoord * _NNoise1_ST.xy + _NNoise1_ST.zw + float2(_Time.x * _Speed, 0);
  				o.uv2 = v.texcoord * _NNoise2_ST.xy + _NNoise2_ST.zw + float2(0, _Time.x * _Speed);
 
-				//neccessary for cubemap reflections
-				float4x4 modelMatrix = _Object2World;
-            	float4x4 modelMatrixInverse = _World2Object; 
- 
-            	output.viewDir = mul(modelMatrix, input.vertex).xyz - _WorldSpaceCameraPos;
+				//Direction from camera to vertex, neccessary for cubemap reflections
+            	o.viewDir = mul(_Object2World, v.vertex).xyz - _WorldSpaceCameraPos.xyz;
 
                 return o;
             }
 
 			half4 frag (v2f i) : COLOR {
-//				return fixed4(i.tangentWorld, 1);
+
 
 				float realDepth = DepthBufferDistance(i.depth, i.projPos);
 				float adjustedDepth = clamp((realDepth) / 20, 0, _MaxDepth);
@@ -171,25 +167,25 @@
 				float4 projPosDistorted = i.projPos + distortNormal * _DistortFactor * adjustedDepth;
 	
 				float distortedDepth = DepthBufferDistance(i.depth, projPosDistorted);
-//				return distortedDepth / _MaxDepth;
+
 				if (distortedDepth < 0) {
 					distortedDepth = DepthBufferDistance(i.depth, i.projPos);
 					projPosDistorted = i.projPos;
 				}
 
 				half4 distortedColor = tex2Dproj(_GrabTexture, UNITY_PROJ_COORD(projPosDistorted));
-				
-
-				//float adjustedDepth = clamp((distortedDepth) / 20, 0, _MaxDepth);
 
 				fixed relativeDepth = clamp(distortedDepth, 0.5, _MaxDepth);
 				relativeDepth = relativeDepth/_MaxDepth;
-				
-				//relativeDepth = 1 - pow(1 - relativeDepth, 3);
+				relativeDepth = 1 - pow(1 - relativeDepth, 3);
 				
 				fixed4 depthColor = tex2D(_ColorRamp, float2(relativeDepth * 0.95, 0));
 				
 				half4 col = (relativeDepth * depthColor + (1 - relativeDepth) * distortedColor);
+				
+				//blend in relfections
+				float3 reflectedDir = reflect(i.viewDir, normalize(i.normalWorld));
+            	col = texCUBE(_ReflectionMap, reflectedDir) * _Reflectivity + col*(1-_Reflectivity);
 				col.a = 1;
 				return col;
 			}
