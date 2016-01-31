@@ -26,7 +26,18 @@ public class MeshGenerator : Singleton<MeshGenerator> {
 
     private MeshFilter terrain, water;
 
+    public void ClearTextures() {
+        textures.Clear();
+    }
+
     public void GenerateTerrain() {
+
+        textures.RemoveAll(item => item == null);
+
+        if (textures.Count == 0) {
+            Debug.LogWarning("No textures added!");
+            return;
+        }
 
         if (terrain == null) {
             Transform tt = transform.FindChild("Terrain");
@@ -180,6 +191,7 @@ public class MeshGenerator : Singleton<MeshGenerator> {
                 obj.transform.SetParent(transform);
                 MeshRenderer renderer = obj.AddComponent<MeshRenderer>();
                 renderer.material = terrainMaterial;
+                renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
 
                 water = obj.AddComponent<MeshFilter>();
             }

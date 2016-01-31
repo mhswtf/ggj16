@@ -83,14 +83,14 @@ Material:
           name: _NNoise1
         second:
           m_Texture: {fileID: 2800000, guid: ad98357e33467fb4396a2b97c112a190, type: 3}
-          m_Scale: {x: 1, y: 1}
+          m_Scale: {x: 10, y: 10}
           m_Offset: {x: 0, y: 0}
       data:
         first:
           name: _NNoise2
         second:
           m_Texture: {fileID: 2800000, guid: ad98357e33467fb4396a2b97c112a190, type: 3}
-          m_Scale: {x: 1, y: 1}
+          m_Scale: {x: 15, y: 15}
           m_Offset: {x: 0, y: 0}
       data:
         first:
@@ -111,11 +111,11 @@ Material:
       data:
         first:
           name: _Cutoff
-        second: .5
+        second: 0.5
       data:
         first:
           name: _Parallax
-        second: .0199999996
+        second: 0.02
       data:
         first:
           name: _ZWrite
@@ -123,7 +123,7 @@ Material:
       data:
         first:
           name: _Glossiness
-        second: .5
+        second: 0.5
       data:
         first:
           name: _BumpScale
@@ -151,35 +151,39 @@ Material:
       data:
         first:
           name: _Transparency
-        second: .419999987
+        second: 0.42
       data:
         first:
           name: _BaseTransparency
-        second: .150000006
+        second: 0.15
       data:
         first:
           name: _TransparencyDropoff
-        second: 2.70000005
+        second: 2.7
       data:
         first:
           name: _Speed
-        second: .75999999
+        second: 0.7
       data:
         first:
           name: _Amplitude
-        second: .280000001
+        second: 0.2
       data:
         first:
           name: _Frequency
-        second: .219999999
+        second: 0.42
       data:
         first:
           name: _DistortFactor
-        second: .200000003
+        second: 0.3
       data:
         first:
           name: _MaxDepth
         second: 20
+      data:
+        first:
+          name: _Smoothing
+        second: 0.5
     m_Colors:
       data:
         first:
@@ -196,8 +200,8 @@ Material:
       data:
         first:
           name: _TintColor
-        second: {r: .83088237, g: .5437392, b: .5437392, a: 1}
+        second: {r: 0.8308824, g: 0.5437392, b: 0.5437392, a: 1}
       data:
         first:
           name: _Direction
-        second: {r: 1, g: 0, b: .400000006, a: 0}
+        second: {r: 1, g: 0, b: 0.4, a: 0}

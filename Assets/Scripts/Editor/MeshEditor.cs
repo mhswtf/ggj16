@@ -18,5 +18,9 @@ public class MeshEditor : Editor {
         if (GUILayout.Button("Create Water")) {
             generator.GenerateWater();
         }
+
+        if (GUILayout.Button("Clear textures")) {
+            generator.ClearTextures();
+        }
     }
 }

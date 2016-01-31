@@ -31,12 +31,12 @@ public class NoiseGenerator : MonoBehaviour {
 
         importer.textureType = TextureImporterType.Advanced;
         importer.isReadable = true;
-        importer.name = fileName;
 
         AssetDatabase.WriteImportSettingsIfDirty(path);
     }
 
     public void AddToMeshGenerator() {
+        image.name = typeName;
         MeshGenerator.Instance.textures.Add(image);
     }
 
