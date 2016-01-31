@@ -12,6 +12,9 @@
 		_NNoise2("Normal Noise 2", 2D) = "white" {}
 		_DistortFactor("Distortion Factor", Range(0.0, 10.0)) = 0.5
 		_MaxDepth("Max Depth", Range(0.01, 20.0)) = 10
+
+		_SpecColor("Specular Color", Color) = (1.0, 1.0, 1.0, 1.0)
+		_Shininess("Shininess", Range(0.1, 100)) = 10
 		
 		_ReflectionMap("Reflection Map", Cube) = "" {}
 		_Reflectivity("Reflectivity", Range(0, 1)) = 0.5
@@ -24,6 +27,7 @@
 	#pragma fragment frag
 
 	#include "UnityCG.cginc"
+	#include "AutoLight.cginc"
 
 	uniform half4 _Direction;
 	uniform half _Speed;
@@ -40,8 +44,11 @@
 	uniform float4 _NNoise2_ST;
 	uniform sampler2D _CameraDepthTexture;
 	uniform sampler2D _GrabTexture;
-	uniform samplerCUBE _ReflectionMap;  
+	uniform fixed4 _SpecColor;
+	uniform half _Shininess;
+	uniform samplerCUBE _ReflectionMap;
 	uniform half _Reflectivity;
+	uniform float4 _LightColor0;
 
 	// depth = float depth of pixel, projPos = float4 screenPosition of pixel
 	float DepthBufferDistance(float depth, float4 projPos){
@@ -59,10 +66,15 @@
 		return worldDepth1 - worldDepth2;
 	}
 
-	float VertexDisplacement(float3 vertex) {
+	float VertexDisplacementLinear(float3 vertex) {
 		fixed2 dir = normalize(_Direction.xz);
 		float x = (vertex.x * dir.x + vertex.z * dir.y) * _Frequency + _Time.w * _Speed;
         return sin(x) * _Amplitude;
+	}
+
+	float VertexDisplacementRipple(float3 v) {
+		float x = -length(v.xz * _Frequency - _Direction.xz) + _Time.w * _Speed;
+		return sin(x) * _Amplitude;
 	}
 
 	ENDCG
@@ -110,9 +122,9 @@
 				// are applied the function relative to their own coordinates, we can use them to generate the new normal, even though
 				// they don't assume the position of actual vertices.
 				
-				v0.y += VertexDisplacement(v0);
-				v1.y += VertexDisplacement(v1);
-				v2.y += VertexDisplacement(v2);
+				v0.y += VertexDisplacementRipple(v0);
+				v1.y += VertexDisplacementRipple(v1);
+				v2.y += VertexDisplacementRipple(v2);
 				
 				// We smooth out the Y difference to avoid hard edges. This will actually result in incorrect normals, but
 				// it can make the water look smoother
@@ -128,7 +140,7 @@
 				float3 vt = mul((float3x3)_World2Object, vta);
 				float3 vn = mul((float3x3)_World2Object, vna);
 				
-				v.tangent = float4(normalize(vt), 1.0);
+				v.tangent = float4(normalize(vt), v.tangent.w);
 				v.normal = normalize(vn);
 
 				o.posWorld = float4(v0, 1.0);
@@ -156,15 +168,14 @@
 
 			half4 frag (v2f i) : COLOR {
 
-
 				float realDepth = DepthBufferDistance(i.depth, i.projPos);
 				float adjustedDepth = clamp((realDepth) / 20, 0, _MaxDepth);
 
 				float4 distortNormal1 = (tex2D(_NNoise1, i.uv1) - 0.5) * 2;
 				float4 distortNormal2 = (tex2D(_NNoise2, i.uv2) - 0.5) * 2;
-				float4 distortNormal = (distortNormal1 + distortNormal2) / 2;
+				float4 distortNormal = ((distortNormal1 + distortNormal2)  / 2) * _DistortFactor;
 				
-				float4 projPosDistorted = i.projPos + distortNormal * _DistortFactor * adjustedDepth;
+				float4 projPosDistorted = i.projPos + distortNormal * adjustedDepth;
 	
 				float distortedDepth = DepthBufferDistance(i.depth, projPosDistorted);
 
@@ -182,12 +193,50 @@
 				fixed4 depthColor = tex2D(_ColorRamp, float2(relativeDepth * 0.95, 0));
 				
 				half4 col = (relativeDepth * depthColor + (1 - relativeDepth) * distortedColor);
+
+
+				// Lighting
+
+				float3 lightDirection;
+				float attenuation;
 				
-				//blend in relfections
-				float3 reflectedDir = reflect(i.viewDir, normalize(i.normalWorld));
-            	col = texCUBE(_ReflectionMap, reflectedDir) * _Reflectivity + col*(1-_Reflectivity);
+				if (_WorldSpaceLightPos0.w == 0.0) { // Directional light
+					lightDirection = normalize(_WorldSpaceLightPos0.xyz);
+					attenuation = 1;
+				} else {
+					float3 fragToLight = _WorldSpaceLightPos0.xyz - i.posWorld.xyz;
+					float distance = length(fragToLight);
+					attenuation = 1.0 / distance;
+					lightDirection = normalize(fragToLight);
+				}
+				
+				attenuation *= LIGHT_ATTENUATION(i);
+				
+				float3 normal = normalize(i.normalWorld + distortNormal);
+
+				// saturate() clamps values to min 0 or max 1
+				// we saturate, because negative dot product indicates that we are on the wrong side of the face
+				
+				// Diffuse lighting
+				float3 diffuseReflection = attenuation * _LightColor0.rgb * saturate(dot(normal, lightDirection));
+				
+				// Specular lighting
+				float3 specularReflection = diffuseReflection * _SpecColor.rgb * 
+					(pow(saturate(dot(reflect(-lightDirection, normal), i.viewDir)), _Shininess));
+
+				
+				// Ambient lighting
+				float3 ambientLighting = UNITY_LIGHTMODEL_AMBIENT.rgb;
+				
+				// Final lighting
+				float4 finalLighting = float4(diffuseReflection + specularReflection + ambientLighting, 1.0);
+
+					// Blend in relfections
+				float3 reflectedDir = reflect(i.viewDir, normal);
+            	col = texCUBE(_ReflectionMap, reflectedDir) * _Reflectivity + col * (1 - _Reflectivity);
+
 				col.a = 1;
-				return col;
+				return col * finalLighting;
 			}
 
 			ENDCG
