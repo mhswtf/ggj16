@@ -3,17 +3,29 @@ using System.Collections;
 using UnityEngine.UI;
 using UnityEditor;
 
-public class NoiseGenerator : MonoBehaviour {
+public class NoiseGenerator : ToolSingleton<NoiseGenerator> {
 
     private static GameObject canvasPrefab;
 
     private Texture2D image;
-    private Renderer canvas;
+    private Renderer _canvas;
+
+    private Renderer Canvas {
+        get {
+            if (_canvas == null) {
+                _canvas = GetComponentInChildren<Renderer>();
+            }
+            return _canvas;
+        }
+        set {
+            _canvas = value;
+        }
+    }
 
     private string typeName;
 
     void Awake() {
-        
+        Clear();
     }
 
     public bool HasTexture() {
@@ -41,8 +53,10 @@ public class NoiseGenerator : MonoBehaviour {
     }
 
     public void Clear() {
-        DestroyImmediate(canvas.gameObject);
-        canvas = null;
+        if (Canvas != null) {
+            DestroyImmediate(_canvas.gameObject);
+            Canvas = null;
+        }
         image = null;
     }
 
@@ -66,7 +80,7 @@ public class NoiseGenerator : MonoBehaviour {
 
     private void Generate(float[,] values) {
 
-        if (canvas == null) {
+        if (_canvas == null) {
             if (canvasPrefab == null) {
                 canvasPrefab = Resources.Load<GameObject>("Prefabs/Canvas");
             }
@@ -74,7 +88,7 @@ public class NoiseGenerator : MonoBehaviour {
             GameObject obj = Instantiate<GameObject>(canvasPrefab);
             obj.name = "Canvas";
             obj.transform.SetParent(transform);
-            canvas = obj.GetComponent<Renderer>();
+            _canvas = obj.GetComponent<Renderer>();
         }
 
         int w = values.GetLength(0);
@@ -98,7 +112,7 @@ public class NoiseGenerator : MonoBehaviour {
 
         image.SetPixels(pixels);
         image.Apply();
-        canvas.sharedMaterial.mainTexture = image;
+        _canvas.sharedMaterial.mainTexture = image;
 
     }
 

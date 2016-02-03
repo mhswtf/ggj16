@@ -3,7 +3,7 @@ using System.Collections;
 using System;
 using System.Collections.Generic;
 
-public class MeshGenerator : Singleton<MeshGenerator> {
+public class MeshGenerator : ToolSingleton<MeshGenerator> {
 
     [Range(10, 250)]
     public int size = 100;
@@ -22,6 +22,7 @@ public class MeshGenerator : Singleton<MeshGenerator> {
     public Material terrainMaterial;
     public Material waterMaterial;
 
+    public List<Texture2D> terrainMasks;
     public List<Texture2D> textures = new List<Texture2D>();
 
     private MeshFilter terrain, water;
@@ -62,22 +63,56 @@ public class MeshGenerator : Singleton<MeshGenerator> {
 
         Color[] pixels = composite.GetPixels();
 
+
+        terrainMasks.RemoveAll(item => item == null);
+        Color[][] masks = null;
+        float[] maskRatioX = null;
+        float[] maskRatioY = null;
+
+        if (terrainMasks != null && terrainMasks.Count > 0) {
+            int count = terrainMasks.Count;
+            masks = new Color[count][];
+            maskRatioX = new float[count];
+            maskRatioY = new float[count];
+
+            for (int i = 0; i < masks.Length; i++) {
+                masks[i] = terrainMasks[i].GetPixels();
+                maskRatioX[i] = (float) terrainMasks[i].width / (float) w;
+                maskRatioY[i] = (float) terrainMasks[i].height / (float) h;   
+            }
+        }   
+
         Color[][] source = new Color[textures.Count][];
 
         for (int i = 0; i < textures.Count; i++) {
             source[i] = textures[i].GetPixels();
         }
 
-        for (int i = 0; i < pixels.Length; i++) {
-            float total = 0f;
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                int i = y * w + x;
 
-            for (int j = 0; j < source.Length; j++) {
-                total += source[j][i].r;
+                float total = 0f;
+
+                for (int j = 0; j < source.Length; j++) {
+                    total += source[j][i].r;
+                }
+
+                float avg = total / (float) source.Length;
+
+                if (masks != null) {
+                    for (int m = 0; m < masks.Length; m++) {
+                        int mw = terrainMasks[m].width;
+                        int mh = terrainMasks[m].height;
+                        int mx = Mathf.Clamp((int) Mathf.Round((float) x * maskRatioX[m]), 0, mw - 1);
+                        int my = Mathf.Clamp((int) Mathf.Round((float) y * maskRatioY[m]), 0, mh - 1);
+                        int mi = my * mw + mx;
+                        avg *= masks[m][mi].r;
+                    }
+                }
+
+                pixels[i].r = avg;
             }
-
-            float avg = total / (float) source.Length;
-
-            pixels[i].r = avg;
         }
 
         composite.SetPixels(pixels);
@@ -119,22 +154,24 @@ public class MeshGenerator : Singleton<MeshGenerator> {
 
                 vertices[i] = new Vector3(vx * spacing, vh, vy * spacing);
 
-                uvs[i] = new Vector2((float) x / (float) w, (float) y / (float) h);
+//                uvs[i] = new Vector2((float) x / (float) w, (float) y / (float) h);
             
-                /*float uvx = 0f;
+                float uvx = 0f;
                 float uvy = 0f;
 
                 if (x > 0) {
                     float pxvh = vertices[i - 1].y;
-                    uvx = uvs[i - 1].x + uvRate + uvRate * Mathf.Abs(vh - pxvh);
+//                    uvx = uvs[i - 1].x + Mathf.Sqrt(Mathf.Pow(uvRate, 2f) + Mathf.Pow(Mathf.Abs(vh - pxvh), 2f));
+                    uvx = uvs[i - 1].x + uvRate;
                 }
 
                 if (y > 0) {
                     float pyvh = vertices[i - w].y;
-                    uvy = uvs[i - w].y + uvRate + uvRate * Mathf.Abs(vh - pyvh);
+//                    uvy = uvs[i - w].y + Mathf.Sqrt(Mathf.Pow(uvRate, 2f) + Mathf.Pow(Mathf.Abs(vh - pyvh), 2f));
+                    uvy = uvs[i - w].y + uvRate;
                 }
 
-                uvs[i] = new Vector2(uvx, uvy);*/
+                uvs[i] = new Vector2(uvx, uvy);
             }
         }
 

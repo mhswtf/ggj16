@@ -1,7 +1,7 @@
 ﻿Shader "Custom/Water" {
 
 	Properties {
-		_Direction("WindDirection", Vector) = (1.0, 0.0, 1.0, 0.0)
+		_Direction("Wind Direction", Vector) = (1.0, 0.0, 1.0, 0.0)
 		_Speed("Speed", Range(0.1, 5)) = 0.5
 		_Amplitude("Amplitude", Range(0.0, 5.0)) = 0.5
 		_Frequency("Frequency", Range(0.0, 3.0)) = 1.0
@@ -10,6 +10,9 @@
 		_ColorRamp("ColorRamp", 2D) = "white" {}
 		_NNoise1("Normal Noise 1", 2D) = "white" {}
 		_NNoise2("Normal Noise 2", 2D) = "white" {}
+		_FoamTex("Foam Texture", 2D) = "white" {}
+		_FoamFactor("Foam Factor", Range(0.0, 2.0)) = 1.0
+		_FoamColor("Foam Color", Color) = (1.0, 1.0, 1.0, 1.0)
 		_DistortFactor("Distortion Factor", Range(0.0, 10.0)) = 0.5
 		_MaxDepth("Max Depth", Range(0.01, 20.0)) = 10
 
@@ -18,6 +21,7 @@
 		
 		_ReflectionMap("Reflection Map", Cube) = "" {}
 		_Reflectivity("Reflectivity", Range(0, 1)) = 0.5
+
 	}
 
 	CGINCLUDE
@@ -42,6 +46,12 @@
 	uniform float4 _NNoise1_ST;
 	uniform sampler2D _NNoise2;
 	uniform float4 _NNoise2_ST;
+	uniform sampler2D _FoamTex;
+	uniform float4 _FoamTex_ST;
+
+	uniform half _FoamFactor;
+	uniform fixed4 _FoamColor;
+
 	uniform sampler2D _CameraDepthTexture;
 	uniform sampler2D _GrabTexture;
 	uniform fixed4 _SpecColor;
@@ -73,7 +83,7 @@
 	}
 
 	float VertexDisplacementRipple(float3 v) {
-		float x = -length(v.xz * _Frequency - _Direction.xz) + _Time.w * _Speed;
+		float x = -length(v.xz * _Frequency - _Direction.xz) + _Time.w * -_Speed;
 		return sin(x) * _Amplitude;
 	}
 
@@ -97,13 +107,12 @@
 				float4 pos : SV_POSITION;
 				float2 uv1 : TEXCOORD0;
 				float2 uv2 : TEXCOORD1;
-				float4 posWorld : TEXCOORD2;
+				float2 uv3 : TEXCOORD2;
+				float4 posWorld : TEXCOORD3;
 				float3 normalWorld : NORMAL;
-				float3 tangentWorld : TEXCOORD3;
-				float3 binormalWorld : TEXCOORD4;	
-                float4 projPos : TEXCOORD5; 
-                float depth : TEXCOORD6;
-                float3 viewDir : TEXCOORD7;
+                float4 projPos : TEXCOORD4; 
+                float depth : TEXCOORD5;
+                float3 viewDir : TEXCOORD6;
             };
 
             v2f vert(appdata_full v) {
@@ -147,9 +156,9 @@
 				v.vertex = mul(_World2Object, o.posWorld);
 
 				o.normalWorld = normalize(mul(float4(v.normal, 0.0), _World2Object).xyz);
-				o.tangentWorld = normalize(mul(_Object2World, v.tangent).xyz);
+				//o.tangentWorld = normalize(mul(_Object2World, v.tangent).xyz);
 				// tangent.w is specific to Unity
-				o.binormalWorld = normalize(cross(o.normalWorld, o.tangentWorld) * v.tangent.w);
+				//o.binormalWorld = normalize(cross(o.normalWorld, o.tangentWorld) * v.tangent.w);
 
                 o.pos = mul(UNITY_MATRIX_MVP, v.vertex);
 
@@ -159,6 +168,7 @@
 
  				o.uv1 = v.texcoord * _NNoise1_ST.xy + _NNoise1_ST.zw + float2(_Time.x * _Speed, 0);
  				o.uv2 = v.texcoord * _NNoise2_ST.xy + _NNoise2_ST.zw + float2(0, _Time.x * _Speed);
+ 				o.uv3 = v.texcoord * _FoamTex_ST.xy + _FoamTex_ST.zw + float2(_Time.x * _Speed, 0);
 
 				//Direction from camera to vertex, neccessary for cubemap reflections
             	o.viewDir = mul(_Object2World, v.vertex).xyz - _WorldSpaceCameraPos.xyz;
@@ -167,7 +177,6 @@
             }
 
 			half4 frag (v2f i) : COLOR {
-
 				float realDepth = DepthBufferDistance(i.depth, i.projPos);
 				float adjustedDepth = clamp((realDepth) / 20, 0, _MaxDepth);
 
@@ -186,13 +195,22 @@
 
 				half4 distortedColor = tex2Dproj(_GrabTexture, UNITY_PROJ_COORD(projPosDistorted));
 
+
 				fixed relativeDepth = clamp(distortedDepth, 0.5, _MaxDepth);
-				relativeDepth = relativeDepth/_MaxDepth;
-				relativeDepth = 1 - pow(1 - relativeDepth, 3);
+
+				relativeDepth = relativeDepth / _MaxDepth;
+				half oneMinusDepth = 1 - relativeDepth;
+
+				relativeDepth = 1 - pow(oneMinusDepth, 3);
 				
 				fixed4 depthColor = tex2D(_ColorRamp, float2(relativeDepth * 0.95, 0));
-				
-				half4 col = (relativeDepth * depthColor + (1 - relativeDepth) * distortedColor);
+
+				fixed4 foam = tex2D(_FoamTex, i.uv3) * _FoamColor;
+
+				foam.a = foam.a * ((_FoamFactor - realDepth) / _FoamFactor);
+
+				foam.a = saturate(foam.a);
+				half4 col = (relativeDepth * depthColor + oneMinusDepth * distortedColor) + foam * foam.a;
 
 
 				// Lighting
@@ -206,7 +224,7 @@
 				} else {
 					float3 fragToLight = _WorldSpaceLightPos0.xyz - i.posWorld.xyz;
 					float distance = length(fragToLight);
-					attenuation = 1.0 / distance;
+					attenuation = 1.0 / pow(distance, 3);
 					lightDirection = normalize(fragToLight);
 				}
 				
@@ -222,16 +240,15 @@
 				
 				// Specular lighting
 				float3 specularReflection = diffuseReflection * _SpecColor.rgb * 
-					(pow(saturate(dot(reflect(-lightDirection, normal), i.viewDir)), _Shininess));
+					pow(saturate(dot(reflect(-lightDirection, normal), i.viewDir)), _Shininess);
 
-				
 				// Ambient lighting
 				float3 ambientLighting = UNITY_LIGHTMODEL_AMBIENT.rgb;
 				
 				// Final lighting
 				float4 finalLighting = float4(diffuseReflection + specularReflection + ambientLighting, 1.0);
 
-					// Blend in relfections
+				// Blend in relfections
 				float3 reflectedDir = reflect(i.viewDir, normal);
             	col = texCUBE(_ReflectionMap, reflectedDir) * _Reflectivity + col * (1 - _Reflectivity);
 

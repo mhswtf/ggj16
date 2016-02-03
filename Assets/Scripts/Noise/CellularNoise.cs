@@ -60,7 +60,7 @@ public class CellularNoise : Noise {
                 }
             
                 float value = values[x, y] + cVariance * (avg >= limit ? 1f : -1f);
-//                value = Mathf.Clamp01(value);
+                value = Mathf.Clamp01(value);
                 target[x, y] = value;
             }
         }
