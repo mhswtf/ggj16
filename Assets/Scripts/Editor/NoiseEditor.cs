@@ -60,7 +60,7 @@ public class NoiseEditor : Editor {
         GUILayout.Space(10f);
 
         if (generator.HasTexture() && GUILayout.Button("Save")) {
-            generator.Save();
+            Save(generator.Image, generator.TypeName);
         }
 
         if (generator.HasTexture() && GUILayout.Button("Add to mesh generator")) {
@@ -70,5 +70,20 @@ public class NoiseEditor : Editor {
         if (GUILayout.Button("Clear")) {
             generator.Clear();
         }
+    }
+
+    private void Save(Texture2D image, string typeName) {
+        string fileName = FileIO.ExportToPNG(image.EncodeToPNG(), typeName);
+        AssetDatabase.Refresh();
+
+        string path = string.Format("Assets{0}{1}", FileIO.relativePath, fileName);
+
+        AssetDatabase.ImportAsset(path);
+        TextureImporter importer = AssetImporter.GetAtPath(path) as TextureImporter;
+
+        importer.textureType = TextureImporterType.Advanced;
+        importer.isReadable = true;
+
+        AssetDatabase.WriteImportSettingsIfDirty(path);
     }
 }

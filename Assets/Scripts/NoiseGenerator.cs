@@ -1,14 +1,18 @@
 ﻿using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
-using UnityEditor;
 
 public class NoiseGenerator : ToolSingleton<NoiseGenerator> {
 
     private static GameObject canvasPrefab;
 
-    private Texture2D image;
+    private Texture2D _image;
+    private string _typeName;
+
     private Renderer _canvas;
+
+    public Texture2D Image { get { return _image; } }
+    public string TypeName { get { return _typeName; } }
 
     private Renderer Canvas {
         get {
@@ -22,34 +26,18 @@ public class NoiseGenerator : ToolSingleton<NoiseGenerator> {
         }
     }
 
-    private string typeName;
 
     void Awake() {
         Clear();
     }
 
     public bool HasTexture() {
-        return image != null;
-    }
-
-    public void Save() {
-        string fileName = FileIO.ExportToPNG(image.EncodeToPNG(), typeName);
-        AssetDatabase.Refresh();
-
-        string path = string.Format("Assets{0}{1}", FileIO.relativePath, fileName);
-
-        AssetDatabase.ImportAsset(path);
-        TextureImporter importer = AssetImporter.GetAtPath(path) as TextureImporter;
-
-        importer.textureType = TextureImporterType.Advanced;
-        importer.isReadable = true;
-
-        AssetDatabase.WriteImportSettingsIfDirty(path);
+        return _image != null;
     }
 
     public void AddToMeshGenerator() {
-        image.name = typeName;
-        MeshGenerator.Instance.textures.Add(image);
+        _image.name = _typeName;
+        MeshGenerator.Instance.textures.Add(_image);
     }
 
     public void Clear() {
@@ -57,7 +45,7 @@ public class NoiseGenerator : ToolSingleton<NoiseGenerator> {
             DestroyImmediate(_canvas.gameObject);
             Canvas = null;
         }
-        image = null;
+        _image = null;
     }
 
     public void DiamonSquare(int size, int iterations, float variation, float roughness, float seed) {
@@ -66,7 +54,7 @@ public class NoiseGenerator : ToolSingleton<NoiseGenerator> {
 
         Generate(values);
 
-        typeName = "DS";
+        _typeName = "DS";
     }
 
     public void Cellular(int size, CellularNoise.NeighbourhoodType type, int iterations, int neighborhoodSize, float limit, float variance, float decay) {
@@ -75,7 +63,7 @@ public class NoiseGenerator : ToolSingleton<NoiseGenerator> {
 
         Generate(values);
 
-        typeName = "CA";
+        _typeName = "CA";
     }
 
     private void Generate(float[,] values) {
@@ -94,10 +82,10 @@ public class NoiseGenerator : ToolSingleton<NoiseGenerator> {
         int w = values.GetLength(0);
         int h = values.GetLength(1);
 
-        image = new Texture2D(w, h);
-        image.wrapMode = TextureWrapMode.Clamp;
+        _image = new Texture2D(w, h);
+        _image.wrapMode = TextureWrapMode.Clamp;
 
-        Color[] pixels = image.GetPixels();
+        Color[] pixels = _image.GetPixels();
 
         int i = 0;
 
@@ -110,9 +98,9 @@ public class NoiseGenerator : ToolSingleton<NoiseGenerator> {
             }
         }
 
-        image.SetPixels(pixels);
-        image.Apply();
-        _canvas.sharedMaterial.mainTexture = image;
+        _image.SetPixels(pixels);
+        _image.Apply();
+        _canvas.sharedMaterial.mainTexture = _image;
 
     }
 

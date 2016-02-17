@@ -110,8 +110,8 @@ Material:
         first:
           name: _FoamTex
         second:
-          m_Texture: {fileID: 2800000, guid: 5a8a99d6b58a1ba4ab61ea1e75e2b02b, type: 3}
-          m_Scale: {x: 1, y: 1}
+          m_Texture: {fileID: 2800000, guid: 48031172aa1c7d14c8df4f98d945d328, type: 3}
+          m_Scale: {x: 10, y: 10}
           m_Offset: {x: 0, y: 0}
     m_Floats:
       data:
@@ -209,7 +209,11 @@ Material:
       data:
         first:
           name: _FoamFactor
-        second: 1
+        second: 2
+      data:
+        first:
+          name: _SomeBool
+        second: 0
     m_Colors:
       data:
         first:
@@ -238,4 +242,4 @@ Material:
       data:
         first:
           name: _FoamColor
-        second: {r: 1, g: 0, b: 1, a: 1}
+        second: {r: 0.5955882, g: 0.7941176, b: 0.6708925, a: 1}
